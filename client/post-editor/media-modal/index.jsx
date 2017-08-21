@@ -143,8 +143,31 @@ export class EditorMediaModal extends Component {
 		};
 	}
 
+	copyExternalAfterLoadingWordPressLibrary( selectedMedia, originalSource ) {
+		const { site } = this.props;
+
+		// Trigger the action to clear pointers/selected items
+		MediaActions.sourceChanged( site.ID );
+
+		// Change our state back to WordPress
+		this.setState( {
+			source: '',
+			search: undefined,
+		}, () => {
+			// Copy the selected item from the external source. Note we pass the actual media data as we need this to generate
+			// transient placeholders. This is done after the state changes so our transients and external items appear
+			// in the WordPress library that we've just switched to
+			MediaActions.addExternal( site.ID, selectedMedia, originalSource );
+		} );
+	}
+
+	copyExternal( selectedMedia, originalSource ) {
+		const { site } = this.props;
+		MediaActions.addExternal( site.ID, selectedMedia, originalSource );
+	}
+
 	confirmSelection = () => {
-		const { view, mediaLibrarySelectedItems, site } = this.props;
+		const { view, mediaLibrarySelectedItems } = this.props;
 
 		if ( areMediaActionsDisabled( view, mediaLibrarySelectedItems, this.props.isParentReady ) ) {
 			return;
@@ -155,25 +178,13 @@ export class EditorMediaModal extends Component {
 				( item ) => Object.assign( {}, item, { ID: uniqueId( 'media-' ), 'transient': true } )
 			);
 			if ( mediaLibrarySelectedItems.length === 1 ) {
-				MediaActions.addExternal( site.ID, itemsWithTransientId, this.state.source );
+				this.copyExternal( itemsWithTransientId, this.state.source );
 				this.props.onClose( {
 					type: 'media',
 					items: itemsWithTransientId
 				} );
 			} else {
-				// Trigger the action to clear pointers/selected items
-				MediaActions.sourceChanged( site.ID );
-
-				// Change our state back to WordPress
-				this.setState( {
-					source: '',
-					search: undefined,
-				}, () => {
-					// Copy the selected item from the external source. Note we pass the actual media data as we need this to generate
-					// transient placeholders. This is done after the state changes so our transients and external items appear
-					// in the WordPress library that we've just switched to
-					MediaActions.addExternal( this.props.site.ID, itemsWithTransientId, this.state.source );
-				} );
+				this.copyExternalAfterLoadingWordPressLibrary( itemsWithTransientId, this.state.source );
 			}
 		} else {
 			const value = mediaLibrarySelectedItems.length
