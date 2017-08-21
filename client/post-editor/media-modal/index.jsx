@@ -144,7 +144,7 @@ export class EditorMediaModal extends Component {
 	}
 
 	confirmSelection = () => {
-		const { view, mediaLibrarySelectedItems } = this.props;
+		const { view, mediaLibrarySelectedItems, site } = this.props;
 
 		if ( areMediaActionsDisabled( view, mediaLibrarySelectedItems, this.props.isParentReady ) ) {
 			return;
@@ -152,9 +152,29 @@ export class EditorMediaModal extends Component {
 
 		if ( mediaLibrarySelectedItems.length && this.state.source !== '' ) {
 			const itemsWithTransientId = mediaLibrarySelectedItems.map(
-				( item ) => Object.assign( {}, item, { ID: uniqueId( 'media-' ) } )
+				( item ) => Object.assign( {}, item, { ID: uniqueId( 'media-' ), 'transient': true } )
 			);
-			this.copyExternal( itemsWithTransientId, this.state.source );
+			if ( mediaLibrarySelectedItems.length === 1 ) {
+				MediaActions.addExternal( site.ID, itemsWithTransientId, this.state.source );
+				this.props.onClose( {
+					type: 'media',
+					items: itemsWithTransientId
+				} );
+			} else {
+				// Trigger the action to clear pointers/selected items
+				MediaActions.sourceChanged( site.ID );
+
+				// Change our state back to WordPress
+				this.setState( {
+					source: '',
+					search: undefined,
+				}, () => {
+					// Copy the selected item from the external source. Note we pass the actual media data as we need this to generate
+					// transient placeholders. This is done after the state changes so our transients and external items appear
+					// in the WordPress library that we've just switched to
+					MediaActions.addExternal( this.props.site.ID, itemsWithTransientId, this.state.source );
+				} );
+			}
 		} else {
 			const value = mediaLibrarySelectedItems.length
 			? {
@@ -354,24 +374,6 @@ export class EditorMediaModal extends Component {
 		}
 	};
 
-	copyExternal = ( selectedItems, originalSource ) => {
-		const { site } = this.props;
-
-		// Trigger the action to clear pointers/selected items
-		MediaActions.sourceChanged( site.ID );
-
-		// Change our state back to WordPress
-		this.setState( {
-			source: '',
-			search: undefined,
-		}, () => {
-			// Copy the selected item from the external source. Note we pass the actual media data as we need this to generate
-			// transient placeholders. This is done after the state changes so our transients and external items appear
-			// in the WordPress library that we've just switched to
-			MediaActions.addExternal( this.props.site.ID, selectedItems, originalSource );
-		} );
-	};
-
 	onSourceChange = source => {
 		MediaActions.sourceChanged( this.props.site.ID );
 		this.setState( { source, search: undefined } );
@@ -430,7 +432,7 @@ export class EditorMediaModal extends Component {
 		if ( this.state.source !== '' ) {
 			buttons.push( {
 				action: 'confirm',
-				label: this.props.translate( 'Copy to media library' ),
+				label: selectedItems.length > 1 ? this.props.translate( 'Copy to media library' ) : this.props.translate( 'Insert' ),
 				isPrimary: true,
 				disabled: isDisabled || 0 === selectedItems.length,
 				onClick: this.confirmSelection
