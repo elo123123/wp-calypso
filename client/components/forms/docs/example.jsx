@@ -338,6 +338,20 @@ class FormFields extends React.PureComponent {
 							currencySymbolPrefix={ this.state.currencyInput.currency }
 							onCurrencyChange={ this.handleCurrencyChange }
 							currencyList={ currencyList }
+							placeholder="Placeholder text..."
+						/>
+					</FormFieldset>
+
+					<FormFieldset>
+						<FormLabel htmlFor="currency_input_editable">Editable Form Currency Input (customized list)</FormLabel>
+						<FormCurrencyInput
+							name="currency_input_editable"
+							id="currency_input_editable"
+							value={ this.state.currencyInput.value }
+							onChange={ this.handlePriceChange }
+							currencySymbolPrefix={ this.state.currencyInput.currency }
+							onCurrencyChange={ this.handleCurrencyChange }
+							currencyList={ currencyList }
 							visualCurrencyList={ visualCurrencyList }
 							placeholder="Placeholder text..."
 						/>
