@@ -13,6 +13,7 @@ import { dispatchRequest } from 'state/data-layer/wpcom-http/utils';
 import { errorNotice, removeNotice, successNotice } from 'state/notices/actions';
 import { getSiteSlug } from 'state/sites/selectors';
 import { requestError, updateZone, updateZones } from '../../zones/actions';
+import { parseZoneResponse, parseZonesResponse } from './util';
 import { ZONINATOR_REQUEST_ZONES, ZONINATOR_ADD_ZONE } from 'zoninator/state/action-types';
 
 export const requestZonesList = ( { dispatch }, action ) => {
@@ -31,7 +32,7 @@ export const requestZonesError = ( { dispatch }, { siteId } ) =>
 	dispatch( requestError( siteId ) );
 
 export const updateZonesList = ( { dispatch }, { siteId }, { data } ) =>
-	dispatch( updateZones( siteId, data ) );
+	dispatch( updateZones( siteId, parseZonesResponse( data ) ) );
 
 export const createZone = ( { dispatch }, action ) => {
 	const { data, form, siteId } = action;
@@ -51,7 +52,7 @@ export const createZone = ( { dispatch }, action ) => {
 
 export const announceZoneSaved = ( dispatch, { form, siteId }, data ) => {
 	dispatch( stopSubmit( form ) );
-	dispatch( updateZone( siteId, data ) );
+	dispatch( updateZone( siteId, parseZoneResponse( data ) ) );
 	dispatch( successNotice(
 		translate( 'Zone saved!' ),
 		{ id: 'zoninator-zone-create' },

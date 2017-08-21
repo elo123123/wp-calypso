@@ -28,6 +28,7 @@ import {
 	updateZone,
 	updateZones
 } from 'zoninator/state/zones/actions';
+import { parseZoneResponse, parseZonesResponse } from '../util';
 
 const apiResponse = {
 	data: [
@@ -73,13 +74,13 @@ describe( '#updateZonesList()', () => {
 		updateZonesList( { dispatch }, action, apiResponse );
 
 		expect( dispatch ).to.have.been.calledOnce;
-		expect( dispatch ).to.have.been.calledWith( updateZones( 123456, [
+		expect( dispatch ).to.have.been.calledWith( updateZones( 123456, parseZonesResponse( [
 			{
 				name: 'Test zone',
 				slug: 'test-zone',
 				description: 'A test zone.',
 			}
-		] ) );
+		] ) ) );
 	} );
 } );
 
@@ -172,7 +173,7 @@ describe( '#announceZoneSaved()', () => {
 
 		announceZoneSaved( dispatch, action, zone );
 
-		expect( dispatch ).to.have.been.calledWith( updateZone( 123456, zone ) );
+		expect( dispatch ).to.have.been.calledWith( updateZone( 123456, parseZoneResponse( zone ) ) );
 	} );
 
 	it( 'should dispatch `successNotice`', () => {
